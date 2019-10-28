@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.nci</groupId>
-	<artifactId>transactions</artifactId>
+	<artifactId>expense-tracker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>transactions</name>
 	<packaging>pom</packaging>
@@ -19,7 +19,7 @@
 	</properties>
 
 	<modules>
-		<module>actuator-service</module>
+		<module>transaction-service</module>
 		<module>commons</module>
 	</modules>
 

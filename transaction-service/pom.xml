@@ -6,11 +6,11 @@
 
 	<parent>
 		<groupId>com.nci</groupId>
-		<artifactId>transactions</artifactId>
+		<artifactId>expense-tracker</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>actuator-service</artifactId>
+	<artifactId>transaction-service</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>
