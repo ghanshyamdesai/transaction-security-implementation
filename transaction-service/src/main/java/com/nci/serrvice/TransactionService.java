@@ -1,6 +1,10 @@
 package com.nci.serrvice;
 
+import java.util.List;
+
+import cm.nci.pdf.PdfDetails;
+
 public interface TransactionService {
 
-	void readPdfFile() throws Exception;
+	List<PdfDetails> readPdfFile() throws Exception;
 }
