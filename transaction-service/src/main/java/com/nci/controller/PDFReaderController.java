@@ -1,5 +1,7 @@
 package com.nci.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,15 +20,15 @@ public class PDFReaderController {
 
 	@GetMapping("/readPdf")
 	@ResponseBody
-	public PdfDetails sayHello() {
-
+	public List<PdfDetails> sayHello() {
+		List<PdfDetails> itemList = null;
 		try {
-			transactionService.readPdfFile();
+			 itemList = transactionService.readPdfFile();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return new PdfDetails();
+		return itemList;
 	}
 
 }
