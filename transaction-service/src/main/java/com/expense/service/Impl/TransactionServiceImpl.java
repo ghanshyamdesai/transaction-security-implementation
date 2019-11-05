@@ -1,21 +1,24 @@
-package com.nci.serrvice.Impl;
+package com.expense.service.Impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import technology.tabula.Rectangle;
 import cm.nci.pdf.PdfDetails;
 
-import com.nci.actuatorservice.PDFTableStripper;
-import com.nci.serrvice.TransactionService;
-
-import technology.tabula.Rectangle;
+import com.expense.actuatorservice.PDFTableStripper;
+import com.expense.dao.ExpenseCategoryDao;
+import com.expense.entity.ExpenseCategory;
+import com.expense.request.SubmitExpenseRequest;
+import com.expense.serrvice.TransactionService;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -26,8 +29,12 @@ public class TransactionServiceImpl implements TransactionService {
 	@Value("${pdf.file.name}")
 	private String fileName;
 
+	@Autowired
+	private ExpenseCategoryDao<ExpenseCategory> expenseCategoryDao;
+
 	@Override
 	public List<PdfDetails> readPdfFile() throws Exception {
+
 		List<PdfDetails> itemList = new ArrayList<PdfDetails>();
 
 		String fileAbsolutePath = fileLoc + fileName;
@@ -144,6 +151,81 @@ public class TransactionServiceImpl implements TransactionService {
 			System.out.println("List of items " + itemList);
 		}
 		return itemList;
+	}
+
+	@Override
+	public void submitDetails(SubmitExpenseRequest request) {
+		ExpenseCategory expenseCategory = new ExpenseCategory();
+		expenseCategory.setDate(request.getDate());
+
+		Map<String, String> details = request.getDetails();
+
+		for (Map.Entry<String, String> entry : details.entrySet()) {
+			System.out.println("Key = " + entry.getKey() + ", Value = "
+					+ entry.getValue());
+
+			if ("clothes".equals(entry.getKey())) {
+				expenseCategory.setClothes(Double.valueOf(entry.getValue()));
+			}
+
+			if ("eatingOut".equals(entry.getKey())) {
+				expenseCategory.setEatingOut(Double.valueOf(entry.getValue()));
+			}
+
+			if ("entertainment".equals(entry.getKey())) {
+				expenseCategory.setEntertainment(Double.valueOf(entry
+						.getValue()));
+			}
+
+			if ("fuel".equals(entry.getKey())) {
+				expenseCategory.setFuel(Double.valueOf(entry.getValue()));
+			}
+
+			if ("grocery".equals(entry.getKey())) {
+				expenseCategory.setGrocery(Double.valueOf(entry.getValue()));
+			}
+
+			if ("householdItems".equals(entry.getKey())) {
+				expenseCategory.setHouseholdItems(Double.valueOf(entry
+						.getValue()));
+			}
+
+			if ("gifts".equals(entry.getKey())) {
+				expenseCategory.setGifts(Double.valueOf(entry.getValue()));
+			}
+
+			if ("holidays".equals(entry.getKey())) {
+				expenseCategory.setHolidays(Double.valueOf(entry.getValue()));
+			}
+
+			if ("kids".equals(entry.getKey())) {
+				expenseCategory.setKids(Double.valueOf(entry.getValue()));
+			}
+
+			if ("shopping".equals(entry.getKey())) {
+				expenseCategory.setShopping(Double.valueOf(entry.getValue()));
+			}
+
+			if ("sports".equals(entry.getKey())) {
+				expenseCategory.setSports(Double.valueOf(entry.getValue()));
+			}
+
+			if ("travel".equals(entry.getKey())) {
+				expenseCategory.setTravel(Double.valueOf(entry.getValue()));
+			}
+
+			if ("bills".equals(entry.getKey())) {
+				expenseCategory.setBills(Double.valueOf(entry.getValue()));
+			}
+
+			if ("cash".equals(entry.getKey())) {
+				expenseCategory.setCash(Double.valueOf(entry.getValue()));
+			}
+
+		}
+
+		expenseCategoryDao.save(expenseCategory);
+
 	}
 
 }

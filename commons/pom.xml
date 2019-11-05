@@ -6,6 +6,7 @@
 		<groupId>com.nci</groupId>
 		<artifactId>expense-tracker</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+		<relativePath/>
 	</parent>	
 	<artifactId>commons</artifactId>
 	<packaging>jar</packaging>
