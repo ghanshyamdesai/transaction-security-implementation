@@ -1,8 +1,9 @@
-package com.expense.actuatorservice;
+package com.expense.pdfread;
 
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -21,48 +22,31 @@ import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.PDFTextStripperByArea;
 import org.apache.pdfbox.text.TextPosition;
-import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 
 
-public class PDFTableStripper extends PDFTextStripper{
+public class PDFTableParsing extends PDFTextStripper{
 	
-	private AffineTransform flipAT;
-    private AffineTransform rotateAT;
-    
-    /**
-     *  Regions updated by calls to writeString
-     */
+	private AffineTransform flip;
+    private AffineTransform rotate;
+  
     private Set<Rectangle2D> boxes;
 
-    // Border to allow when finding intersections
-    private double dx = 1.0; // This value works for me, feel free to tweak (or add setter)
-	private double dy = 0.000; // Rows of text tend to overlap, so need to extend
+ 
+    private double deltax = 1.0; 
+	private double deltay = 0.000; 
 	
-	/**
-	 *  Region in which to find table (otherwise whole page)
-	 */
-	private Rectangle2D regionArea;
 	
-	/**
-	 * Number of rows in inferred table
-	 */
-    private int nRows=0;
+	private Rectangle2D rectangleArea;
+	
+	
+    private int numberOfRows=0;
 
-	/**
-	 * Number of columns in inferred table
-	 */
-    private int nCols=0;
+    private int numberOfCols=0;
     
-    /**
-     * This is the object that does the text extraction
-     */
-	private PDFTextStripperByArea regionStripper; 
+   
+	private PDFTextStripperByArea pDFTextStripperByArea; 
 	
-	/**
-	 * 1D intervals - used for calculateTableRegions()
-	 * @author Beldaz
-	 *
-	 */
+	
     public static class Interval {
     	double start;
     	double end;
@@ -78,11 +62,11 @@ public class PDFTableStripper extends PDFTextStripper{
 		public static void addTo(Interval x, LinkedList<Interval> columns) {
     		int p = 0;
 			Iterator<Interval> it = columns.iterator();
-			// Find where x should go
+			
 			while(it.hasNext()) {
 				Interval col = it.next();
 				if(x.end>=col.start) {
-					if(x.start<=col.end) { // overlaps
+					if(x.start<=col.end) { 
 						x.add(col);
 						it.remove();
 					}
@@ -103,47 +87,34 @@ public class PDFTableStripper extends PDFTextStripper{
 	}
 	
 	
-    /**
-     * Instantiate a new PDFTableStripper object.
-     *
-     * @param document
-     * @throws IOException If there is an error loading the properties.
-     */
-    public PDFTableStripper() throws IOException
+   
+    public PDFTableParsing() throws IOException
     {
     	super.setShouldSeparateByBeads(false);
-        regionStripper = new PDFTextStripperByArea();
-        regionStripper.setSortByPosition( true );
+        pDFTextStripperByArea = new PDFTextStripperByArea();
+        pDFTextStripperByArea.setSortByPosition( true );
     }
     
-    /**
-     * Define the region to group text by.
-     *
-     * @param rect The rectangle area to retrieve the text from.
-     */
+    
     public void setRegion(Rectangle2D rect )
     {
-        regionArea = rect;
+        rectangleArea = rect;
     }
     
     public int getRows()
     {
-        return nRows;
+        return numberOfRows;
     }
     
     public int getColumns()
     {
-        return nCols;
+        return numberOfCols;
     }
    
-    /**
-     * Get the text for the region, this should be called after extractTable().
-     *
-     * @return The text that was identified in that region.
-     */
+   
     public String getText(int row, int col)
     {
-        return regionStripper.getTextForRegion("el"+col+"x"+row);
+        return pDFTextStripperByArea.getTextForRegion("el"+col+"x"+row);
     }
 
     public void extractTable(PDPage pdPage) throws IOException
@@ -152,13 +123,13 @@ public class PDFTableStripper extends PDFTextStripper{
         setEndPage(getCurrentPageNo());
         
         boxes = new HashSet<Rectangle2D>();
-        // flip y-axis
-        flipAT = new AffineTransform();
-        flipAT.translate(0, pdPage.getBBox().getHeight());
-        flipAT.scale(1, -1);
+        
+        flip = new AffineTransform();
+        flip.translate(0, pdPage.getBBox().getHeight());
+        flip.scale(1, -1);
 
-        // page may be rotated
-        rotateAT = new AffineTransform();
+       
+        rotate = new AffineTransform();
         int rotation = pdPage.getRotation();
         if (rotation != 0)
         {
@@ -166,49 +137,40 @@ public class PDFTableStripper extends PDFTextStripper{
             switch (rotation)
             {
                 case 90:
-                    rotateAT.translate(mediaBox.getHeight(), 0);
+                    rotate.translate(mediaBox.getHeight(), 0);
                     break;
                 case 270:
-                    rotateAT.translate(0, mediaBox.getWidth());
+                    rotate.translate(0, mediaBox.getWidth());
                     break;
                 case 180:
-                    rotateAT.translate(mediaBox.getWidth(), mediaBox.getHeight());
+                    rotate.translate(mediaBox.getWidth(), mediaBox.getHeight());
                     break;
                 default:
                     break;
             }
-            rotateAT.rotate(Math.toRadians(rotation));
+            rotate.rotate(Math.toRadians(rotation));
         }
-        // Trigger processing of the document so that writeString is called.
+       
         try (Writer dummy = new OutputStreamWriter(new ByteArrayOutputStream())) {
         	super.output = dummy;
         	super.processPage(pdPage);
         }                
 
         Rectangle2D[][] regions = calculateTableRegions();
-
-//        System.err.println("Drawing " + nCols + "x" + nRows + "="+ nRows*nCols + " regions");
-        for(int i=0; i<nCols; ++i) {
-        	for(int j=0; j<nRows; ++j) {
+        for(int i=0; i<numberOfCols; ++i) {
+        	for(int j=0; j<numberOfRows; ++j) {
         		final Rectangle2D region = regions[i][j];
-				regionStripper.addRegion("el"+i+"x"+j, region);
+				pDFTextStripperByArea.addRegion("el"+i+"x"+j, region);
         	}
         }
 
-        regionStripper.extractRegions(pdPage); 
+        pDFTextStripperByArea.extractRegions(pdPage); 
     }
 
-    /**
-     * Infer a rectangular grid of regions from the boxes field.
-     * 
-     * @return 2D array of table regions (as Rectangle2D objects). Note that 
-     * some of these regions may have no content.
-     */
+   
     private Rectangle2D[][] calculateTableRegions() {
     	
-    	// Build up a list of all table regions, based upon the populated 
-    	// regions of boxes field. Treats the horizontal and vertical extents 
-    	// of each box as distinct
+    	
     	LinkedList<Interval> columns = new LinkedList<Interval>();
     	LinkedList<Interval> rows = new LinkedList<Interval>();
     	
@@ -220,15 +182,14 @@ public class PDFTableStripper extends PDFTextStripper{
     		Interval.addTo(y, rows);    	
     	}
         
-    	nRows = rows.size();
-    	nCols = columns.size();
-    	Rectangle2D[][] regions = new Rectangle2D[nCols][nRows];
+    	numberOfRows = rows.size();
+    	numberOfCols = columns.size();
+    	Rectangle2D[][] regions = new Rectangle2D[numberOfCols][numberOfRows];
     	int i=0;
-    	// Label regions from top left, rather than the transformed orientation
     	for(Interval column: columns) {
     		int j=0;
     		for(Interval row: rows) {
-				regions[nCols-i-1][nRows-j-1] = new Rectangle2D.Double(column.start, row.start, column.end - column.start, row.end - row.start);    			
+				regions[numberOfCols-i-1][numberOfRows-j-1] = new Rectangle2D.Double(column.start, row.start, column.end - column.start, row.end - row.start);    			
     			++j;
     		}
     		++i;
@@ -237,54 +198,42 @@ public class PDFTableStripper extends PDFTextStripper{
     	return regions;
 	}
 
-	/**
-	 * Register each character's bounding box, updating boxes field to maintain 
-	 * a list of all distinct groups of characters.
-	 * 
-     * Overrides the default functionality of PDFTextStripper.
-     * Most of this is taken from DrawPrintTextLocations.java, with extra steps 
-     * at end of main loop
-     */
+	
     @Override
     protected void writeString(String string, List<TextPosition> textPositions) throws IOException
     {        
         for (TextPosition text : textPositions)
         {
-            // glyph space -> user space
-            // note: text.getTextMatrix() is *not* the Text Matrix, it's the Text Rendering Matrix
+          
             AffineTransform at = text.getTextMatrix().createAffineTransform();
             PDFont font = text.getFont();
             BoundingBox bbox = font.getBoundingBox();
 
-            // advance width, bbox height (glyph space)
             float xadvance = font.getWidth(text.getCharacterCodes()[0]); // todo: should iterate all chars
             Rectangle2D.Float rect = new Rectangle2D.Float(0, bbox.getLowerLeftY(), xadvance, bbox.getHeight());
             
             if (font instanceof PDType3Font)
             {
-                // bbox and font matrix are unscaled
+               
                 at.concatenate(font.getFontMatrix().createAffineTransform());
             }
             else
             {
-                // bbox and font matrix are already scaled to 1000
+              
                 at.scale(1/1000f, 1/1000f);
             }
             Shape s = at.createTransformedShape(rect);
-            s = flipAT.createTransformedShape(s);
-            s = rotateAT.createTransformedShape(s);
+            s = flip.createTransformedShape(s);
+            s = rotate.createTransformedShape(s);
             
             
-            //
-            // Merge character's bounding box with boxes field
-            //
+            
             Rectangle2D bounds = s.getBounds2D();
-            // Pad sides to detect almost touching boxes
             Rectangle2D hitbox = bounds.getBounds2D();
-            hitbox.add(bounds.getMinX() - dx , bounds.getMinY() - dy);
-            hitbox.add(bounds.getMaxX() + dx , bounds.getMaxY() + dy);
+            hitbox.add(bounds.getMinX() - deltax , bounds.getMinY() - deltay);
+            hitbox.add(bounds.getMaxX() + deltax , bounds.getMaxY() + deltay);
             
-            // Find all overlapping boxes
+          
             List<Rectangle2D> intersectList = new ArrayList<Rectangle2D>();
             for(Rectangle2D box: boxes) {
             	if(box.intersects(hitbox)) {
@@ -292,9 +241,7 @@ public class PDFTableStripper extends PDFTextStripper{
             	}
             }
             
-            // Combine all touching boxes and update
-            // (NOTE: Potentially this could leave some overlapping boxes un-merged,
-            // but it's sufficient for now and get's fixed up in calculateTableRegions)
+          
             for(Rectangle2D box: intersectList) {
             	bounds.add(box);
             	boxes.remove(box);
@@ -305,26 +252,18 @@ public class PDFTableStripper extends PDFTextStripper{
         
     }
     
-    /**
-     * This method does nothing in this derived class, because beads and regions are incompatible. Beads are
-     * ignored when stripping by area.
-     *
-     * @param aShouldSeparateByBeads The new grouping of beads.
-     */
+    
     @Override
     public final void setShouldSeparateByBeads(boolean aShouldSeparateByBeads)
     {
     }
 
-    /**
-     * Adapted from PDFTextStripperByArea
-     * {@inheritDoc}
-     */
+   
     @Override
     protected void processTextPosition( TextPosition text )
     {
-        if(regionArea!=null && !regionArea.contains( text.getX(), text.getY() ) ) {
-        	// skip character
+        if(rectangleArea!=null && !rectangleArea.contains( text.getX(), text.getY() ) ) {
+        	
         } else {
             super.processTextPosition( text );
         }

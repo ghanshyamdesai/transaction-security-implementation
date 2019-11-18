@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+ xmlns:sec = "http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+ <head>
+        <title>Uploading file</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <h1>Welcome</h1>
+
+        <form action="/details" method="post" enctype="multipart/form-data" th:value="${phoneNumber}">
+            <label for="phoneNumber" >Hello</label>:
+            <input id="phoneNumber" name="phoneNumber" autofocus="autofocus"  th:value="${phoneNumber}"/> <br />
+            <label>Enter file</label>
+            <input type="file" name="file">
+            <button type="submit">Upload</button>
+        </form>
+    </body>
+</html>
