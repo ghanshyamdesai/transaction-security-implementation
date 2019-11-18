@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+ xmlns:sec = "http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+  <head>
+    <title>Login page</title>
+  </head>
+  <body>
+    <h1>Login page</h1>
+     
+    <!-- <p th:if="${loginError}" class="error">Wrong user or password</p> -->
+    <form th:action="@{/checkUser}" th:object="${loginForm}" method="post">
+      <label for="firstName">Firstname</label>:
+      <input type="text" id="firstName" name="firstName" autofocus="autofocus"/> <br />
+      <label for="lastName">Lastname</label>:
+      <input type="text" id="lastName" name="lastName" autofocus="autofocus"/> <br />
+      <label for="phoneNumber">Phonenumber</label>:
+      <input type="text" id="phoneNumber" name="phoneNumber" autofocus="autofocus"/> <br />
+     <!--  <label for="password">Password</label>:
+      <input type="password" id="password" name="password" /> <br /> -->
+      <input type="submit" value="Log in"/> 
+      <!-- <a th:href="@{/confirm}">Log In</a> -->
+    </form>
+  </body>
+</html>

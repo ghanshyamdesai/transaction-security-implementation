@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+ xmlns:sec = "http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>Enter your Details to Begin</h1>
+    <!-- <p th:if="${loginError}" class="error">Wrong user or password</p> -->
+    <form th:action="@{/addAccount}" th:object="${loginForm}" method="post">
+      <label for="firstName" >FirstName</label>:
+      <input id="firstName" name="firstName" autofocus="autofocus"  th:value="${firstName}"/> <br />
+      <label for="lastName" >LastName</label>:
+      <input type="lastName" id="lastName" name="lastName" th:value="${lastName}" /> <br />
+      
+      <label for="phoneNumber" >Phonenumber</label>:
+      <input type="text" id="phoneNumber" name="phoneNumber" autofocus="autofocus" th:value="${phoneNumber}"/> <br />
+      <label for="password" >PDFPassword</label>:
+      <input type="text" id="password" name="password" autofocus="autofocus" th:value="${password}"/> <br />
+      <label for="dateOfBirth" >Date Of Birth</label>:
+      <input type="text" id="dateOfBirth" name="dateOfBirth" autofocus="autofocus" th:value="${dateOfBirth}"/> <br />
+      
+      <label for="salaryMonth" >Salary Month</label>:
+      <input type="text" id="salaryMonth" name="salaryMonth" autofocus="autofocus"/> <br />
+      
+      <label for="salary" >Salary</label>:
+      <input type="text" id="salary" name="salary" autofocus="autofocus"/> <br />
+      
+      <label for="thresholdExpense" >Threshold Expense</label>:
+      <input type="text" id="thresholdExpense" name="thresholdExpense" autofocus="autofocus"/> <br />
+       <input type="submit" value="Sign Up" />
+      <!-- <a th:href="@{/confirm}">Sign Up</a> -->
+    </form>
+
+</body>
+</html>

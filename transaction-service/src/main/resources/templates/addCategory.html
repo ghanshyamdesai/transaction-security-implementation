@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<form action="/addNewCategory" method="post" th:object="${categoryListRequest}">
+<label for="phoneNumber" >Phone Number</label>:
+      <input id="phoneNumber" name="phoneNumber" autofocus="autofocus"  th:value="${phoneNumber}"/> <br />
+ <label for="category">Add your category:</label>:
+      <input type="text" id="category" name="category" autofocus="autofocus"/> <br/>
+<input type="submit" value="Submit">
+</form>
+
+</body>
+</html>
